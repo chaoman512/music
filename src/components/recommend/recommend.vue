@@ -23,7 +23,7 @@ export default {
     _getRecommend() {
       getRecommend().then((res) => {
         if(res.code===ERR_OK) {
-          alert(res.data.slider)
+          console.log(res.data.slider)
         }
       })
 
