@@ -32,6 +32,12 @@ module.exports = {
 "no-multiple-empty-lines": [0, {"max": 100}],
 "no-trailing-spaces": 1,
 "no-mixed-spaces-and-tabs": [0],
-
+"quotes": [1, "single"],
+"no-unused-vars": [2, { 
+      // 允许声明未使用变量
+      "vars": "local",
+      // 参数不检查
+      "args": "none" 
+    }],
   }
 }
