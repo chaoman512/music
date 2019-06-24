@@ -7,7 +7,7 @@
   	 	<li v-for="group in data"  class="list-group" ref="listGroup">
   	 		<h2 class="list-group-title">{{group.title}}</h2>
   	 		<ul>
-  	 			<li v-for="item in group.items" class="list-group-item">
+  	 			<li v-for="item in group.items" class="list-group-item" @click="selectItem(item)">
   	 				<img :src="item.avatar" class="avatar">
   	 				<span class="name">{{item.name}}</span>
   	 			</li>
@@ -21,12 +21,18 @@
         </li>
       </ul>
   	</div>
+    <div class="list-fixed" ref="fixed" v-show="fixedTitle">
+         <h1 class="fixed-title">{{fixedTitle}}</h1>
+    </div>
+    <div class="loading-container" v-show="!data.length">
+    <loading></loading></div>
   </scroll>
 </template>
 
 
 <script type="text/ecmascript-6">
 import Scroll from 'base/scroll/scroll'
+import Loading from 'base/loading/loading'
 import {getData} from 'common/js/dom'
 
   const TITLE_HEIGHT = 30
@@ -57,9 +63,18 @@ export default {
      		return this.data.map((group)=>{
      			return group.title.substr(0,1)
      		})
-   	}
+   	},
+    fixedTitle(){
+     if(this.scrollY>0){
+     return ""
+    }
+     return this.data[this.currentIndex]?this.data[this.currentIndex].title:""
+  }
    },
    methods:{
+      selectItem(item){
+        this.$emit('select',item)
+    },
       onShortcutTouchStart(e) {
         let anchorIndex = getData(e.target, 'index')
         let firstTouch=e.touches[0]
@@ -78,6 +93,17 @@ export default {
          this.scrollY=pos.y
        },
       _scrollTo(index){
+      console.log(index)
+      if(index===null){
+      return
+      }
+      if(index<0){
+      index=0
+      }else if(index>listHeight.length-2){
+      index=listHeight.length-2
+    }
+
+       this.scrollY=-this.listHeight[index]
        this.$refs.listview.scrollToElement(this.$refs.listGroup[index],0)
       },
       _calculateHeight(){
@@ -98,22 +124,37 @@ export default {
           this._calculateHeight()
         }, 20)
       },
+
+      //当滚动到顶部,newY>0
       scrollY(newY){
         const listHeight=this.listHeight
-        for(let i=0;i<listHeight.length;i++){
+
+        //滚动到中间部分
+        for(let i=0;i<listHeight.length-1;i++){
           let height1=listHeight[i]
           let height2=listHeight[i+1]
-          if(!height2||(-newY>height1&&-newY<height2)){
+          if((-newY>=height1&&-newY<height2)){
              this.currentIndex=i
-             console.log(this.currentIndex)
+             this.diff=height2+newY
              return
           }
         }
-        this.currentIndex=0
-      }  
+          
+        //当滚动到底部，且-newY大于最后一个元素的上限
+        this.currentIndex=listHeight.length-2
+      },
+      diff(newVal){
+      let fixedTop=(newVal>0&&newVal<TITLE_HEIGHT)?newVal-TITLE_HEIGHT:0
+      if(this.fixedTop===fixedTop){
+        return
+    }
+    this.fixedTop=fixedTop
+     this.$refs.fixed.style.transform = `translate3d(0,${fixedTop}px,0)`
+    }
     },
     components:{
-     	  Scroll
+     	  Scroll,
+        Loading
     }
 }
 </script>
@@ -170,7 +211,7 @@ export default {
           color: $color-theme
     .list-fixed
       position: absolute
-      top: 0
+      top: -2px
       left: 0
       width: 100%
       .fixed-title
