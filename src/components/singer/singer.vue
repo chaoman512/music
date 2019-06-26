@@ -8,6 +8,7 @@
 
 <script type="text/ecmascript-6">
 import {getSingerList} from "api/singer"
+import {getSingerDetail} from "api/singer"
 import {ERR_OK} from "api/config"
 import Singer from "common/js/singer"
 import ListView from "base/listview/listview"
